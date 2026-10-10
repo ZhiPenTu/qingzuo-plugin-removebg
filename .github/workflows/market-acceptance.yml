@@ -1,0 +1,94 @@
+name: Verify public market lifecycle
+on:
+  workflow_dispatch:
+    inputs:
+      host_run_id:
+        description: 'Successful immutable Qingzuo v0.2.7 platform Release run ID'
+        required: true
+        type: string
+      phase:
+        description: 'Install before the plugin-only release, then upgrade the saved profile'
+        required: true
+        type: choice
+        options: [install, upgrade]
+      expected_version:
+        description: 'Expected signed public market version'
+        required: true
+        type: string
+      profile_run_id:
+        description: 'Successful install phase run ID; required for upgrade'
+        type: string
+      prior_version:
+        description: 'Previously installed version; required for upgrade'
+        type: string
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  market:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      QINGZUO_EXPECTED_PLUGIN_VERSION: ${{ inputs.expected_version }}
+      QINGZUO_PRIOR_PLUGIN_VERSION: ${{ inputs.phase == 'upgrade' && inputs.prior_version || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Require successful pinned platform and profile provenance
+        env:
+          HOST_RUN: ${{ inputs.host_run_id }}
+          PROFILE_RUN: ${{ inputs.profile_run_id }}
+          PHASE: ${{ inputs.phase }}
+        run: |
+          node --input-type=module -e "if(!/^[0-9]+$/.test(process.env.HOST_RUN)||!/^\d+\.\d+\.\d+$/.test(process.env.QINGZUO_EXPECTED_PLUGIN_VERSION)||process.env.PHASE==='upgrade'&&(!/^[0-9]+$/.test(process.env.PROFILE_RUN)||!process.env.QINGZUO_PRIOR_PLUGIN_VERSION))throw new Error('Explicit immutable run IDs and versions required');"
+          gh run view "$HOST_RUN" --repo ZhiPenTu/LabelEdit --json conclusion,workflowName | node --input-type=module -e "let text='';for await(const chunk of process.stdin)text+=chunk;const run=JSON.parse(text);if(run.conclusion!=='success'||run.workflowName!=='Release commerce desktop')throw new Error('Pinned platform release did not succeed');"
+          if [[ "$PHASE" == upgrade ]]; then
+            gh run view "$PROFILE_RUN" --json conclusion,workflowName | node --input-type=module -e "let text='';for await(const chunk of process.stdin)text+=chunk;const run=JSON.parse(text);if(run.conclusion!=='success'||run.workflowName!=='Verify public market lifecycle')throw new Error('Initial market installation did not succeed');"
+          fi
+      - uses: actions/download-artifact@v4
+        with:
+          repository: ZhiPenTu/LabelEdit
+          run-id: ${{ inputs.host_run_id }}
+          github-token: ${{ github.token }}
+          name: Commerce-${{ runner.os }}
+          path: host
+      - uses: actions/download-artifact@v4
+        if: inputs.phase == 'upgrade'
+        with:
+          run-id: ${{ inputs.profile_run_id }}
+          github-token: ${{ github.token }}
+          name: Market-profile-${{ runner.os }}
+          path: market-profile
+      - name: Launch the same packaged platform with an isolated saved profile
+        run: |
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            zip=$(find host -name 'CommerceTools-0.2.7-mac-arm64.zip' -type f)
+            test -n "$zip"
+            ditto -x -k "$zip" host/runtime
+            export QINGZUO_HOST_EXECUTABLE="$PWD/host/runtime/Qingzuo.app/Contents/MacOS/Qingzuo"
+          else
+            export QINGZUO_HOST_EXECUTABLE="$PWD/host/desktop/win-unpacked/Qingzuo.exe"
+          fi
+          export QINGZUO_TEST_PROFILE="$PWD/market-profile"
+          npm ci --ignore-scripts
+          node tests/market-host.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Market-profile-${{ runner.os }}
+          path: market-profile/
+          include-hidden-files: true
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Market-evidence-${{ runner.os }}
+          path: output/market-*

@@ -30,14 +30,21 @@ try {
   await fixture(200);
   await host.plugin.locator('#run').click();
   await expect(host.plugin.locator('#status')).toContainText('抠图完成');
+  await expect(host.plugin.locator('#result')).toBeVisible();
+  const previousResource = await host.plugin.locator('#result').getAttribute('src');
   await host.plugin.locator('#download').click();
   await expect.poll(async () => { try { return (await readFile(output)).toString('base64'); } catch { return ''; } }).toBe(png.toString('base64'));
   for (const [status, message] of [[401, '密钥无效'], [402, '额度不足'], [429, '频繁']]) {
     await fixture(status); await host.plugin.locator('#run').click(); await expect(host.plugin.locator('#status')).toContainText(message);
+    await expect(host.plugin.locator('#result')).toBeHidden();
+    await expect(host.plugin.locator('#result')).not.toHaveAttribute('src');
+    await expect(host.plugin.locator('#download')).toBeDisabled();
   }
+  expect(await host.plugin.evaluate(async token => { try { await window.commercePlugin.invoke('files.read', { token }); return false; } catch { return true; } }, previousResource.split('/').at(-1))).toBe(true);
   await fixture(200, true);
   await host.plugin.locator('#run').click();
   await host.plugin.locator('#cancel').click();
   await expect(host.plugin.locator('#status')).toContainText('取消');
+  await expect(host.plugin.locator('#result')).toBeHidden();
   console.log('Independent remove.bg artifact: private preview, scoped multipart, saved PNG, paid-service errors and cancellation passed with fixtures; no paid request made.');
 } finally { await host.close(); }
