@@ -43,6 +43,7 @@ try {
   expect(createHash('sha256').update(await readFile(asar)).digest('hex')).toBe(digest);
   await mkdir('output', { recursive: true });
   await page.screenshot({ path: 'output/market-' + process.env.QINGZUO_EXPECTED_PLUGIN_VERSION + '.png' });
+  await writeFile('output/market-verification.json', JSON.stringify({ platform: process.platform + '-' + process.arch, baseVersion: after.version, baseRunId: process.env.QINGZUO_HOST_RUN_ID, baseSha256: digest, priorPluginVersion: process.env.QINGZUO_PRIOR_PLUGIN_VERSION ?? null, pluginVersion: process.env.QINGZUO_EXPECTED_PLUGIN_VERSION, source: 'signed public market', baseUnchanged: true }, null, 2));
   console.log('Public market Release signature install/update passed; base v0.2.7 application digest unchanged: ' + digest);
 } catch (error) {
   await mkdir('output', { recursive: true });

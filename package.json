@@ -1,6 +1,6 @@
 {
   "name": "@commerce/plugin-removebg",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "commerce": {
     "manifestVersion": 1,
@@ -10,7 +10,7 @@
     "category": "图片处理",
     "api": "^1.1.0",
     "ui": "ui/index.html",
-    "releaseNotes": "独立仓库发布，通用文件上传与私有图片预览。",
+    "releaseNotes": "重新抠图前释放旧结果并清空预览，失败或取消时不再显示过期图片。",
     "permissions": {
       "files": true,
       "credentials": [
