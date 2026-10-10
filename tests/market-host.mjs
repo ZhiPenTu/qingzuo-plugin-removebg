@@ -22,11 +22,12 @@ try {
   const card = page.locator('[data-slot="card"]').filter({ has: page.getByRole('heading', { name: 'AI 抠图', exact: true }) });
   const reload = page.getByRole('button', { name: '重新加载', exact: true });
   for (let attempt = 0; attempt < 5; attempt++) {
+    try { await card.waitFor({ state: 'visible', timeout: 15000 }); break; } catch {}
     await expect.poll(async () => await card.isVisible() || await reload.isVisible(), { timeout: 120000 }).toBe(true);
     if (await card.isVisible()) break;
-    console.log('Manual market reload after network failure, attempt ' + (attempt + 1));
-    await reload.click();
-    await reload.waitFor({ state: 'hidden' });
+    console.log('Manual market reload after an unavailable catalog, attempt ' + (attempt + 1));
+    try { await reload.click({ timeout: 5000 }); }
+    catch (error) { if (!await card.isVisible() && !await page.getByText('正在加载插件目录…', { exact: true }).isVisible()) throw error; }
   }
   await expect(card).toBeVisible();
   for (let attempt = 0; attempt < 5; attempt++) {
