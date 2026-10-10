@@ -1,0 +1,37 @@
+{
+  "name": "@commerce/plugin-removebg",
+  "version": "0.1.1",
+  "private": true,
+  "commerce": {
+    "manifestVersion": 1,
+    "id": "official.removebg",
+    "title": "AI 抠图",
+    "description": "连接 remove.bg，生成透明背景的商品图片",
+    "category": "图片处理",
+    "api": "^1.1.0",
+    "ui": "ui/index.html",
+    "releaseNotes": "独立仓库发布，通用文件上传与私有图片预览。",
+    "permissions": {
+      "files": true,
+      "credentials": [
+        "removebg"
+      ],
+      "network": [
+        "https://api.remove.bg"
+      ]
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "pack": "node scripts/pack-plugin.mjs",
+    "test:host": "node tests/host.mjs"
+  },
+  "dependencies": {
+    "@commerce/plugin-sdk": "https://github.com/ZhiPenTu/LabelEdit/releases/download/sdk-v1.1.1/commerce-plugin-sdk-1.1.1.tgz"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
+  },
+  "license": "MIT"
+}
