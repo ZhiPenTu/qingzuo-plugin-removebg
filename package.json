@@ -1,6 +1,6 @@
 {
   "name": "@commerce/plugin-removebg",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "commerce": {
     "manifestVersion": 1,
@@ -10,7 +10,7 @@
     "category": "图片处理",
     "api": "^1.1.0",
     "ui": "ui/index.html",
-    "releaseNotes": "重新抠图前释放旧结果并清空预览，失败或取消时不再显示过期图片。",
+    "releaseNotes": "统一使用轻作品牌绿主题色，保持桌面底座与插件视觉一致。",
     "permissions": {
       "files": true,
       "credentials": [
