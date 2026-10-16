@@ -51,13 +51,13 @@ jobs:
           PHASE: ${{ inputs.phase }}
         run: |
           node --input-type=module -e "if(!/^[0-9]+$/.test(process.env.HOST_RUN)||!/^\d+\.\d+\.\d+$/.test(process.env.QINGZUO_EXPECTED_PLUGIN_VERSION)||process.env.PHASE==='upgrade'&&(!/^[0-9]+$/.test(process.env.PROFILE_RUN)||!process.env.QINGZUO_PRIOR_PLUGIN_VERSION))throw new Error('Explicit immutable run IDs and versions required');"
-          gh run view "$HOST_RUN" --repo ZhiPenTu/LabelEdit --json conclusion,workflowName | node --input-type=module -e "let text='';for await(const chunk of process.stdin)text+=chunk;const run=JSON.parse(text);if(run.conclusion!=='success'||run.workflowName!=='Release commerce desktop')throw new Error('Pinned platform release did not succeed');"
+          gh run view "$HOST_RUN" --repo ZhiPenTu/qingzuo-desktop --json conclusion,workflowName | node --input-type=module -e "let text='';for await(const chunk of process.stdin)text+=chunk;const run=JSON.parse(text);if(run.conclusion!=='success'||run.workflowName!=='Release commerce desktop')throw new Error('Pinned platform release did not succeed');"
           if [[ "$PHASE" == upgrade ]]; then
             gh run view "$PROFILE_RUN" --json conclusion,workflowName | node --input-type=module -e "let text='';for await(const chunk of process.stdin)text+=chunk;const run=JSON.parse(text);if(run.conclusion!=='success'||run.workflowName!=='Verify public market lifecycle')throw new Error('Initial market installation did not succeed');"
           fi
       - uses: actions/download-artifact@v4
         with:
-          repository: ZhiPenTu/LabelEdit
+          repository: ZhiPenTu/qingzuo-desktop
           run-id: ${{ inputs.host_run_id }}
           github-token: ${{ github.token }}
           name: Commerce-${{ runner.os }}
