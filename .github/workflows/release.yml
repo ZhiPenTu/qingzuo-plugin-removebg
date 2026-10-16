@@ -47,7 +47,7 @@ jobs:
       - name: Prepare pinned host executable
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            zip=$(find host -name 'CommerceTools-0.2.7-mac-arm64.zip' -type f)
+            zip=$(find host -name '*-mac-arm64.zip' -type f)
             test -n "$zip"
             ditto -x -k "$zip" host/runtime
             echo "QINGZUO_HOST_EXECUTABLE=$PWD/host/runtime/Qingzuo.app/Contents/MacOS/Qingzuo" >> "$GITHUB_ENV"
