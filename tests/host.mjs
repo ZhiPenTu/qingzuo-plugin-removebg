@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { launchPluginTestHost } from '@commerce/plugin-sdk/testing';
+import { launchPluginTestHost } from './launch-host.mjs';
 const pkg = JSON.parse(await readFile('package.json')), platform = process.platform + '-' + process.arch;
 if (!process.env.QINGZUO_HOST_EXECUTABLE) throw new Error('Pinned platform executable required.');
 const host = await launchPluginTestHost({ executablePath: process.env.QINGZUO_HOST_EXECUTABLE, artifactPath: 'release/' + pkg.commerce.id + '-' + pkg.version + '-' + platform + '.ecplugin', pluginId: pkg.commerce.id });
